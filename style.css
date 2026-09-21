@@ -156,11 +156,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .mobile-menu.open{display:flex;}
 .mobile-menu a{padding:10px 4px; font-weight:600; border-bottom:1px solid var(--line);}
 
-@media (max-width:860px){
+@media (max-width: 860px){
   .nav-links{display:none;}
   .nav-burger{display:flex;}
   .nav-inner{padding:14px 18px;}
+  
+  /* =========================================================
+     ADD YOUR NEW MOBILE LAYOUT OVERRIDES DIRECTLY BELOW HERE:
+     ========================================================= */
+  
+  /* 1. Optimize the layout wrapper for smaller displays */
+  .wrap {
+    padding: 0 16px !important;
+  }
+  
+  /* 2. Switch your desktop grid columns to a clean 2-column mobile display */
+  .catalog-grid, .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  
+  /* 3. Stack text or section elements vertically if they look too tight */
+  .hero-section, .split-container {
+    flex-direction: column !important;
+    text-align: center;
+  }
 }
+
 
 /* =====================================================================
    4. HERO SLIDESHOW  (feature #3)
