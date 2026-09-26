@@ -554,7 +554,7 @@ $("#checkoutBtn").addEventListener("click", ()=>{
   closeDrawer("cartDrawer","cartBackdrop");
   openCheckout();
 });
-const API_BASE = "https://urbandana-webpage-1.onrender.com";
+const API_BASE = "https://urbandana-webpage-1.onrender.com/api";
 
 
 function showCheckoutSuccess(name){
