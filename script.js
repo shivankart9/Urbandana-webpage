@@ -554,14 +554,82 @@ $("#checkoutBtn").addEventListener("click", ()=>{
   closeDrawer("cartDrawer","cartBackdrop");
   openCheckout();
 });
-$("#checkoutForm").addEventListener("submit", e=>{
-  e.preventDefault();
-  const name = $("#coName").value.trim();
+const API_BASE = "http://localhost:5000/api";
+
+function showCheckoutSuccess(name){
   $("#checkoutFormWrap").style.display = "none";
   $("#checkoutSuccess").style.display = "block";
   $("#checkoutSuccessMsg").textContent = `Thanks ${name}! We'll reach out on WhatsApp/phone to confirm delivery of your ${fmt(cartTotal())} order.`;
   state.cart = {};
   renderCartBadge(); renderCartDrawer();
+}
+
+$("#checkoutForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+
+  const name = $("#coName").value.trim();
+  const payload = {
+    name,
+    phone: $("#coPhone").value.trim(),
+    address: $("#coAddress").value.trim(),
+    city: $("#coCity").value.trim(),
+    pincode: $("#coPin").value.trim(),
+    // "payOnline" is a checkbox/radio you'll need to add to the checkout form;
+    // until then this always falls back to Cash on Delivery
+    paymentMethod: $("#payOnline")?.checked ? "online" : "cod",
+    items: cartEntries().map(e => ({ type: e.p.type, legacyId: e.p.id, qty: e.qty }))
+  };
+
+  try {
+    const orderRes = await fetch(`${API_BASE}/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const order = await orderRes.json();
+    if(!orderRes.ok){ showToast(order.message || "Could not place order"); return; }
+
+    if(payload.paymentMethod === "cod"){
+      showCheckoutSuccess(name);
+      return;
+    }
+
+    // ---- online payment: open Razorpay Checkout ----
+    const payRes = await fetch(`${API_BASE}/payments/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order._id })
+    });
+    const pay = await payRes.json();
+    if(!payRes.ok){ showToast(pay.message || "Could not start payment"); return; }
+
+    const rzp = new Razorpay({
+      key: pay.keyId,
+      amount: pay.amount,
+      currency: pay.currency,
+      order_id: pay.razorpayOrderId,
+      name: "Urbandana",
+      prefill: { name, contact: payload.phone },
+      theme: { color: "#000000" },
+      handler: async (response) => {
+        const verifyRes = await fetch(`${API_BASE}/payments/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: order._id, ...response })
+        });
+        if(verifyRes.ok){ showCheckoutSuccess(name); }
+        else { showToast("Payment verification failed"); }
+      },
+      modal: {
+        // if the user closes the Razorpay popup without paying, the order
+        // stays "unpaid" in the DB — you'll still see it, just unpaid
+        ondismiss: () => showToast("Payment cancelled")
+      }
+    });
+    rzp.open();
+  } catch(err){
+    showToast("Network error — is the backend running?");
+  }
 });
 
 // ==========================================================================

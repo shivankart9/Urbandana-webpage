@@ -413,9 +413,14 @@
           <label for="coPin">Pincode</label>
           <input type="text" id="coPin" required>
         </div>
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+            <input type="checkbox" id="payOnline" style="width:auto;">
+            Pay online now (UPI / Card / Netbanking) — leave unchecked for Cash on Delivery
+          </label>
+        </div>
         <button type="submit" class="btn btn-solid btn-block">Place order</button>
       </form>
-      <div class="note-box">This is a visual demo of the buy flow only. No payment is taken and no order is actually sent anywhere yet — connect a payment gateway and backend to make this functional.</div>
     </div>
 
     <div id="checkoutSuccess" class="checkout-success" style="display:none;">
@@ -513,6 +518,7 @@
 </a>
 
 <script src="images.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
